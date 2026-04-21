@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EdgeCraft № 01 — Neighborhood Sharpening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #12100e;
+    --paper: #ebe3d2;
+    --paper-2: #ddd2b9;
+    --rust: #a63521;
+    --gold: #b8832d;
+    --line: #12100e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 100;
+    mix-blend-mode: multiply;
+  }
+
+  /* VERTICAL SPINE - sticks to the side */
+  .spine {
+    position: fixed;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    transform-origin: left center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    z-index: 50;
+    mix-blend-mode: difference;
+    color: #ddd;
+  }
+  @media (max-width: 900px) { .spine { display: none; } }
+
+  /* MASTHEAD */
+  .masthead {
+    border-bottom: 3px solid var(--ink);
+    padding: 20px 48px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .masthead-title { font-family: 'Fraunces', serif; font-weight: 900; font-size: 22px; letter-spacing: -0.02em; text-transform: none; }
+  .masthead-title em { font-style: italic; font-weight: 400; color: var(--rust); }
+  .masthead-meta { display: flex; gap: 32px; }
+  @media (max-width: 700px) {
+    .masthead { padding: 16px 24px 12px; flex-direction: column; gap: 8px; }
+    .masthead-meta { font-size: 10px; gap: 16px; }
+  }
+
+  /* ===== HERO / COVER ===== */
+  .cover {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    border-bottom: 3px solid var(--ink);
+    min-height: 560px;
+  }
+  @media (max-width: 900px) { .cover { grid-template-columns: 1fr; min-height: auto; } }
+
+  .cover-left {
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 3px solid var(--ink);
+    position: relative;
+  }
+  @media (max-width: 900px) { .cover-left { border-right: none; border-bottom: 3px solid var(--ink); padding: 40px 24px; } }
+
+  .issue-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 12px;
+    margin-bottom: 40px;
+  }
+
+  h1.cover-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(56px, 9vw, 128px);
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+    margin-bottom: 28px;
+  }
+  h1.cover-title em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--rust);
+    display: block;
+    font-size: 0.7em;
+    letter-spacing: -0.03em;
+  }
+  .cover-deck {
+    font-size: clamp(17px, 1.8vw, 21px);
+    line-height: 1.45;
+    max-width: 440px;
+    margin-bottom: 40px;
+    font-weight: 400;
+  }
+  .cover-deck::first-letter {
+    font-weight: 900;
+    font-size: 2.2em;
+    float: left;
+    line-height: 0.9;
+    margin: 4px 8px 0 0;
+    color: var(--rust);
+  }
+
+  .cover-foot {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--rust); border-color: var(--rust); }
+  .btn-ghost { background: transparent; color: var(--ink); }
+  .btn-ghost:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .cover-right {
+    position: relative;
+    background: #0a0806;
+    overflow: hidden;
+  }
+  .cover-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(1.05) saturate(0.9);
+  }
+  @media (max-width: 900px) { .cover-right { min-height: 360px; } }
+
+  .cover-badge {
+    position: absolute;
+    top: 24px; right: 24px;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 2px solid var(--ink);
+    z-index: 2;
+  }
+  .cover-caption {
+    position: absolute;
+    bottom: 20px; left: 24px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(235, 227, 210, 0.75);
+    display: flex;
+    justify-content: space-between;
+    z-index: 2;
+    border-top: 1px solid rgba(235, 227, 210, 0.3);
+    padding-top: 10px;
+  }
+
+  /* ===== TICKER ===== */
+  .ticker {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 14px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    overflow: hidden;
+    white-space: nowrap;
+    border-bottom: 3px solid var(--ink);
+  }
+  .ticker-track {
+    display: inline-flex;
+    animation: scroll 40s linear infinite;
+    gap: 48px;
+    padding-left: 48px;
+  }
+  .ticker-track span { display: inline-flex; align-items: center; gap: 48px; }
+  .ticker-track span::after {
+    content: '✦';
+    color: var(--gold);
+  }
+  @keyframes scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ===== SECTION HEADERS ===== */
+  .section-head {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    padding: 64px 48px 24px;
+    border-bottom: 1px solid var(--ink);
+    gap: 32px;
+    align-items: end;
+  }
+  @media (max-width: 700px) {
+    .section-head { grid-template-columns: 1fr; padding: 48px 24px 20px; gap: 8px; }
+  }
+  .section-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-style: italic;
+    font-size: 72px;
+    line-height: 0.9;
+    color: var(--rust);
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .section-title em { font-style: italic; font-weight: 400; }
+  .section-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* ===== RATES - TABLE STYLE ===== */
+  .rates { padding: 0 48px 48px; }
+  @media (max-width: 700px) { .rates { padding: 0 24px 32px; } }
+  .rate-row {
+    display: grid;
+    grid-template-columns: 60px 1.5fr 2fr 120px;
+    padding: 22px 0;
+    border-bottom: 1px solid rgba(18, 16, 14, 0.2);
+    align-items: baseline;
+    gap: 20px;
+    transition: background 0.15s;
+  }
+  .rate-row:hover { background: var(--paper-2); padding-left: 16px; padding-right: 16px; }
+  .rate-row:last-child { border-bottom: none; }
+  @media (max-width: 700px) {
+    .rate-row { grid-template-columns: 40px 1fr 90px; gap: 12px; }
+    .rate-row .rate-desc { grid-column: 2 / 4; font-size: 13px; }
+  }
+  .rate-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--rust);
+  }
+  .rate-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  .rate-desc {
+    font-size: 15px;
+    line-height: 1.4;
+    color: rgba(18, 16, 14, 0.7);
+  }
+  .rate-price {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-style: italic;
+    font-size: 32px;
+    text-align: right;
+    color: var(--ink);
+  }
+  .rate-price small {
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 10px;
+    display: block;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(18, 16, 14, 0.5);
+    margin-top: 4px;
+  }
+
+  /* ===== METHOD ===== */
+  .method {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 64px 48px;
+    border-top: 3px solid var(--ink);
+    border-bottom: 3px solid var(--ink);
+  }
+  @media (max-width: 700px) { .method { padding: 48px 24px; } }
+  .method .section-head {
+    border-color: var(--paper);
+    padding: 0 0 24px;
+    margin-bottom: 40px;
+  }
+  .method .section-num { color: var(--gold); }
+
+  .method-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  @media (max-width: 800px) { .method-grid { grid-template-columns: 1fr; } }
+
+  .method-step {
+    padding: 32px;
+    border-top: 1px solid rgba(235, 227, 210, 0.2);
+    border-right: 1px solid rgba(235, 227, 210, 0.2);
+    display: flex;
+    gap: 20px;
+    transition: background 0.2s;
+  }
+  .method-step:hover { background: rgba(235, 227, 210, 0.05); }
+  .method-step:nth-child(2n) { border-right: none; }
+  @media (max-width: 800px) { .method-step { border-right: none; } }
+
+  .method-step-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-style: italic;
+    font-size: 48px;
+    line-height: 0.9;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+  .method-step h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 22px;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .method-step p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(235, 227, 210, 0.75);
+  }
+
+  /* ===== PICKUP - BIG FLOATING QUOTE STYLE ===== */
+  .pickup {
+    padding: 80px 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    border-bottom: 3px solid var(--ink);
+  }
+  @media (max-width: 800px) { .pickup { grid-template-columns: 1fr; padding: 56px 24px; gap: 40px; } }
+
+  .pickup-option {
+    position: relative;
+    padding-left: 32px;
+  }
+  .pickup-option::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 4px;
+    background: var(--rust);
+  }
+  .pickup-option:nth-child(2)::before { background: var(--gold); }
+
+  .pickup-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 12px;
+  }
+  .pickup-option:nth-child(2) .pickup-tag { color: var(--gold); }
+
+  .pickup-option h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(28px, 3.5vw, 40px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .pickup-option h3 em { font-style: italic; font-weight: 400; }
+  .pickup-option p {
+    font-size: 16px;
+    line-height: 1.55;
+    margin-bottom: 10px;
+  }
+  .pickup-best {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(18, 16, 14, 0.2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(18, 16, 14, 0.7);
+  }
+
+  /* ===== SAFETY - NOTE CARD ===== */
+  .safety {
+    padding: 48px;
+    background: var(--paper-2);
+    border-bottom: 3px solid var(--ink);
+  }
+  @media (max-width: 700px) { .safety { padding: 32px 24px; } }
+  .safety-note {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    padding: 36px 40px;
+    position: relative;
+    box-shadow: 8px 8px 0 var(--ink);
+  }
+  @media (max-width: 700px) { .safety-note { padding: 28px 24px; box-shadow: 5px 5px 0 var(--ink); } }
+  .safety-stamp {
+    position: absolute;
+    top: -14px; left: 24px;
+    background: var(--rust);
+    color: var(--paper);
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+  .safety-note h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(22px, 3vw, 28px);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+    padding-top: 8px;
+  }
+  .safety-note p { font-size: 15px; line-height: 1.55; }
+
+  /* ===== BOOKING - FINAL SECTION ===== */
+  .booking {
+    padding: 100px 48px;
+    text-align: left;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  @media (max-width: 800px) {
+    .booking { grid-template-columns: 1fr; padding: 64px 24px; gap: 40px; text-align: left; }
+  }
+
+  .booking-head {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(48px, 8vw, 96px);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+  }
+  .booking-head em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--rust);
+  }
+
+  .booking-side {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .booking-side p { margin-bottom: 20px; }
+  .booking-ctas { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .booking-ctas .btn { justify-content: center; padding: 16px 24px; }
+
+  .booking-details {
+    border-top: 2px solid var(--ink);
+    padding-top: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .booking-details div {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(18, 16, 14, 0.2);
+  }
+  .booking-details div:last-child { border-bottom: none; }
+  .booking-details strong { color: var(--rust); font-weight: 700; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 32px 48px;
+    border-top: 3px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  @media (max-width: 600px) { footer { padding: 24px; flex-direction: column; text-align: center; } }
+  footer em { color: var(--gold); font-style: italic; font-family: 'Fraunces', serif; text-transform: none; letter-spacing: normal; }
+
+  /* Entrance */
+  @keyframes fade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .cover-left > * { animation: fade 0.7s ease-out both; }
+  .cover-left > *:nth-child(2) { animation-delay: 0.1s; }
+  .cover-left > *:nth-child(3) { animation-delay: 0.2s; }
+  .cover-left > *:nth-child(4) { animation-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<div class="spine">EdgeCraft · Volume One · Neighborhood Sharpening · Est. 2026</div>
+
+<header class="masthead">
+  <div class="masthead-title">EdgeCraft <em>— sharp since '26</em></div>
+  <div class="masthead-meta">
+    <span>Vol. 01</span>
+    <span>No. 01</span>
+    <span>Now Taking Orders</span>
+  </div>
+</header>
+
+<section class="cover">
+  <div class="cover-left">
+    <div class="issue-mark">
+      <span>A Neighborhood Trade</span>
+      <span>→ Scroll</span>
+    </div>
+
+    <div>
+      <h1 class="cover-title">The Dull<em>shall become sharp.</em></h1>
+      <p class="cover-deck">Dull knives slip, frustrate, and waste good tomatoes. I fix that — by hand, one blade at a time. Drop yours off, or catch me at school pickup. I'll return them ready to glide.</p>
+    </div>
+
+    <div class="cover-foot">
+      <a href="https://airtable.com/appnjSYX34MIuJfcD/pagl2WCQwQoILeHPy/form" target="_blank" rel="noopener" class="btn">Book A Sharpening →</a>
+      <a href="#rates" class="btn btn-ghost">See The Rates</a>
+    </div>
+  </div>
+
+  <div class="cover-right">
+    <img src="workshop-bg.png" alt="EdgeCraft workbench with leather rolls, a knife, scissors, and whetstones" class="cover-img">
+    <div class="cover-badge">The Workbench</div>
+    <div class="cover-caption">
+      <span>Plate 01</span>
+      <span>Tools Of The Trade</span>
+    </div>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="ticker-track">
+    <span>Chef's Knives</span>
+    <span>Paring Knives</span>
+    <span>Bread Knives</span>
+    <span>Cleavers</span>
+    <span>Kitchen Shears</span>
+    <span>Scissors</span>
+    <span>Santokus</span>
+    <span>Carving Knives</span>
+    <span>Chef's Knives</span>
+    <span>Paring Knives</span>
+    <span>Bread Knives</span>
+    <span>Cleavers</span>
+    <span>Kitchen Shears</span>
+    <span>Scissors</span>
+    <span>Santokus</span>
+    <span>Carving Knives</span>
+  </div>
+</div>
+
+<section id="rates">
+  <div class="section-head">
+    <div class="section-num">01</div>
+    <div>
+      <div class="section-kicker">The Rates — By The Piece</div>
+      <h2 class="section-title">Fair prices. <em>Honest work.</em></h2>
+    </div>
+  </div>
+
+  <div class="rates">
+    <div class="rate-row">
+      <div class="rate-num">I.</div>
+      <div class="rate-name">Kitchen Knives</div>
+      <div class="rate-desc">Chef's, paring, utility, santoku — the everyday workhorses.</div>
+      <div class="rate-price">$5<small>Per Knife</small></div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-num">II.</div>
+      <div class="rate-name">Big Blades</div>
+      <div class="rate-desc">Bread knives, cleavers, carving knives — the serious ones.</div>
+      <div class="rate-price">$8<small>Per Knife</small></div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-num">III.</div>
+      <div class="rate-name">Scissors &amp; Shears</div>
+      <div class="rate-desc">Kitchen shears and regular scissors. Sharp in a snap.</div>
+      <div class="rate-price">$4<small>Per Pair</small></div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-num">IV.</div>
+      <div class="rate-name">The Full Kitchen</div>
+      <div class="rate-desc">Five or more items? The whole block gets the treatment — and a discount.</div>
+      <div class="rate-price">20%<small>Off The Total</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="method" id="how">
+  <div class="section-head">
+    <div class="section-num">02</div>
+    <div>
+      <div class="section-kicker" style="color: var(--gold);">The Method — Start To Finish</div>
+      <h2 class="section-title">How it <em>actually</em> works.</h2>
+    </div>
+  </div>
+
+  <div class="method-grid">
+    <div class="method-step">
+      <div class="method-step-num">i</div>
+      <div>
+        <h3>Send Word</h3>
+        <p>Email me with how many blades, what kind, and when you need them back. I'll confirm the same day.</p>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="method-step-num">ii</div>
+      <div>
+        <h3>Hand Them Over</h3>
+        <p>Drop off at my house or meet me at school pickup. Wrap each blade in a towel or cardboard — it keeps everyone's fingers intact.</p>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="method-step-num">iii</div>
+      <div>
+        <h3>I Get To Work</h3>
+        <p>Each knife is worked by hand on the stone. No rushed machine grinding. Takes the time it takes — usually a day or two.</p>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="method-step-num">iv</div>
+      <div>
+        <h3>Pick Up &amp; Pay</h3>
+        <p>Cash, Venmo, or Zelle at pickup. You'll slice a tomato that night and remember what it's supposed to feel like.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pickup">
+  <div class="pickup-option">
+    <div class="pickup-tag">Option A · The House Drop</div>
+    <h3>Stop by <em>the bench.</em></h3>
+    <p>After school or on weekends, swing by my house. I'll send the address once we've set things up over email.</p>
+    <div class="pickup-best">Best for → bigger orders · first-timers · folks nearby</div>
+  </div>
+  <div class="pickup-option">
+    <div class="pickup-tag">Option B · The School Line</div>
+    <h3>Meet me at <em>dismissal.</em></h3>
+    <p>Already heading to school pickup? I can meet you in the line or at the front entrance. Just email me the day before to coordinate.</p>
+    <div class="pickup-best">Best for → parents on a schedule · quick handoffs</div>
+  </div>
+</section>
+
+<section class="safety">
+  <div class="safety-note">
+    <span class="safety-stamp">// A Word On Safety</span>
+    <h3>Wrap your blades, please.</h3>
+    <p>A folded kitchen towel, piece of cardboard, or bubble wrap taped around each blade is all it takes. Empty cardboard tubes work great for longer knives. This keeps your fingers, my fingers, and anyone's fingers in between perfectly attached — the way they ought to be.</p>
+  </div>
+</section>
+
+<section class="booking" id="contact">
+  <div>
+    <div class="section-kicker" style="margin-bottom: 16px;">03 · The Booking</div>
+    <h2 class="booking-head">Ready to <em>make it sharp?</em></h2>
+  </div>
+  <div class="booking-side">
+    <p>The Airtable form takes about a minute — tell me what you've got and I'll get back to you the same day. Prefer email? That works too.</p>
+    <div class="booking-ctas">
+      <a href="https://airtable.com/appnjSYX34MIuJfcD/pagl2WCQwQoILeHPy/form" target="_blank" rel="noopener" class="btn">Open The Booking Form →</a>
+      <a href="mailto:sunkid4k@proton.me?subject=EdgeCraft%20Sharpening%20Request&body=Hi!%20I'd%20like%20to%20book%20a%20sharpening.%0A%0AItems%3A%20%0APickup%20preference%20(house%20or%20school)%3A%20%0ANeeded%20by%3A%20%0A%0AThanks!" class="btn btn-ghost">Email Me Instead →</a>
+    </div>
+    <div class="booking-details">
+      <div><strong>Email</strong><span>sunkid4k@proton.me</span></div>
+      <div><strong>Hours</strong><span>After school &amp; weekends</span></div>
+      <div><strong>Turnaround</strong><span>1–2 days, usually</span></div>
+      <div><strong>Payment</strong><span>Cash · Venmo · Zelle</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>EdgeCraft · © MMXXVI · Run By A Neighborhood Kid</div>
+  <div><em>Keep Your Kitchen Safe</em></div>
+</footer>
+
+</body>
+</html>

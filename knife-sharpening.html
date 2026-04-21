@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EdgeCraft — Neighborhood Knife Sharpening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --paper: #f2ede4;
+    --paper-dark: #e6ddc9;
+    --rust: #c73e1d;
+    --steel: #4a5568;
+    --gold: #d4a017;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.03) 0, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,0.04) 0, transparent 40%);
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 1;
+    mix-blend-mode: multiply;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+
+  /* TOP BAR */
+  .topbar {
+    border-bottom: 2px solid var(--ink);
+    padding: 14px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .topbar .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .topbar .dot { display: inline-block; width: 8px; height: 8px; background: var(--rust); border-radius: 50%; margin-right: 8px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* HERO */
+  .hero {
+    padding: 120px 0 140px;
+    position: relative;
+    background-image:
+      linear-gradient(rgba(10, 8, 6, 0.55), rgba(10, 8, 6, 0.75)),
+      url('workshop-bg.png');
+    background-size: cover;
+    background-position: center;
+    color: var(--paper);
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(10,8,6,0.5) 100%);
+    pointer-events: none;
+  }
+  .hero .wrap { position: relative; z-index: 2; }
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-tag::before { content: ''; width: 40px; height: 2px; background: var(--gold); }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 13vw, 180px);
+    line-height: 0.85;
+    letter-spacing: -0.01em;
+    margin-bottom: 32px;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  }
+  h1 .italic {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--gold);
+    display: block;
+    font-size: 0.75em;
+    letter-spacing: -0.02em;
+  }
+  .hero-sub {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(18px, 2.2vw, 24px);
+    max-width: 560px;
+    line-height: 1.4;
+    margin-bottom: 40px;
+    color: rgba(242, 237, 228, 0.85);
+  }
+  .cta-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 2px solid var(--paper);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--rust); color: var(--paper); border-color: var(--rust); }
+  .btn-primary:hover { background: var(--gold); border-color: var(--gold); color: var(--ink); transform: translate(-2px, -2px); box-shadow: 4px 4px 0 rgba(0,0,0,0.4); }
+  .btn-secondary { background: transparent; color: var(--paper); }
+  .btn-secondary:hover { background: var(--paper); color: var(--ink); }
+
+  .hero-blade {
+    position: absolute;
+    right: -100px;
+    top: 40px;
+    width: 500px;
+    opacity: 0.9;
+    pointer-events: none;
+    transform: rotate(-15deg);
+  }
+  @media (max-width: 900px) { .hero-blade { opacity: 0.15; width: 350px; right: -80px; } }
+
+  /* PRICES */
+  .prices {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 80px 0;
+    position: relative;
+  }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    color: var(--gold);
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 96px);
+    line-height: 0.9;
+    margin-bottom: 48px;
+  }
+  .price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0; border: 2px solid var(--paper); }
+  .price-card {
+    padding: 32px;
+    border-right: 2px solid var(--paper);
+    transition: background 0.2s;
+  }
+  .price-card:last-child { border-right: none; }
+  .price-card:hover { background: var(--rust); }
+  @media (max-width: 700px) {
+    .price-card { border-right: none; border-bottom: 2px solid var(--paper); }
+    .price-card:last-child { border-bottom: none; }
+  }
+  .price-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .price-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  .price-desc { font-size: 14px; opacity: 0.8; margin-bottom: 20px; line-height: 1.5; }
+  .price-amount {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    font-style: italic;
+  }
+  .price-amount .per { font-size: 14px; font-style: normal; font-family: 'JetBrains Mono', monospace; opacity: 0.7; }
+
+  /* HOW IT WORKS */
+  .how { padding: 100px 0; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 40px; margin-top: 48px; }
+  .step { position: relative; }
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 120px;
+    line-height: 1;
+    color: var(--paper-dark);
+    margin-bottom: -30px;
+    display: block;
+  }
+  .step-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  .step-desc { line-height: 1.6; color: var(--steel); position: relative; z-index: 1; }
+
+  /* DROP OFF */
+  .dropoff {
+    padding: 100px 0;
+    background: var(--paper-dark);
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+  .dropoff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+  @media (max-width: 800px) { .dropoff-grid { grid-template-columns: 1fr; gap: 40px; } }
+  .option {
+    padding: 32px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    position: relative;
+  }
+  .option::before {
+    content: '';
+    position: absolute;
+    top: 8px; left: 8px;
+    right: -8px; bottom: -8px;
+    background: var(--ink);
+    z-index: -1;
+  }
+  .option-icon {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    background: var(--rust);
+    color: var(--paper);
+    padding: 6px 12px;
+    display: inline-block;
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+  .option h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .option p { line-height: 1.6; color: var(--steel); margin-bottom: 12px; }
+
+  /* SAFETY */
+  .safety {
+    padding: 80px 0;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .safety-inner {
+    border: 2px dashed var(--gold);
+    padding: 40px;
+    position: relative;
+  }
+  .safety-label {
+    position: absolute;
+    top: -14px;
+    left: 24px;
+    background: var(--ink);
+    padding: 0 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+  }
+  .safety h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+  .safety p { line-height: 1.6; opacity: 0.85; }
+
+  /* CONTACT */
+  .contact {
+    padding: 120px 0;
+    text-align: center;
+    position: relative;
+  }
+  .contact h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 10vw, 120px);
+    line-height: 0.9;
+    margin-bottom: 24px;
+  }
+  .contact h2 .italic {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--rust);
+  }
+  .contact-sub {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--steel);
+    margin-bottom: 40px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .contact-info {
+    display: inline-block;
+    padding: 24px 40px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em;
+  }
+  .contact-info .line { margin: 6px 0; font-size: 14px; }
+  .contact-info .line strong { color: var(--gold); margin-right: 12px; }
+  .replace-note {
+    margin-top: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--rust);
+    opacity: 0.7;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 32px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+    opacity: 0.7;
+  }
+
+  /* Animations */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero-tag, h1, .hero-sub, .cta-row { animation: rise 0.8s ease-out both; }
+  h1 { animation-delay: 0.1s; }
+  .hero-sub { animation-delay: 0.25s; }
+  .cta-row { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <span><span class="dot"></span>Now Accepting Drop-Offs</span>
+    <span>Est. 2026 — Run By A Kid Who Cares About Sharp Knives</span>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-tag">Neighborhood Sharpening Service</div>
+    <h1>EdgeCraft<span class="italic">sharpening done right.</span></h1>
+    <p class="hero-sub">Dull knives are dangerous and annoying. I'll fix that. Drop off your knives, pick 'em up razor-sharp — or I'll meet you at school pickup.</p>
+    <div class="cta-row">
+      <a href="https://airtable.com/appnjSYX34MIuJfcD/pagl2WCQwQoILeHPy/form" target="_blank" rel="noopener" class="btn btn-primary">Book A Sharpening →</a>
+      <a href="#how" class="btn btn-secondary">How It Works</a>
+    </div>
+  </div>
+</section>
+
+<section class="prices">
+  <div class="wrap">
+    <div class="section-label">// The Rates</div>
+    <h2 class="section-title">Fair prices.<br>Sharp results.</h2>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="price-num">01</div>
+        <div class="price-title">Kitchen Knives</div>
+        <div class="price-desc">Chef's, paring, utility, santoku — the everyday workhorses.</div>
+        <div class="price-amount">$5<span class="per"> / knife</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-num">02</div>
+        <div class="price-title">Big Blades</div>
+        <div class="price-desc">Bread knives, cleavers, carving knives — the serious ones.</div>
+        <div class="price-amount">$8<span class="per"> / knife</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-num">03</div>
+        <div class="price-title">Scissors</div>
+        <div class="price-desc">Kitchen shears and regular scissors. Sharp again in a snap.</div>
+        <div class="price-amount">$4<span class="per"> / pair</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-num">04</div>
+        <div class="price-title">Bundle Deal</div>
+        <div class="price-desc">Bring 5 or more items and save. The full kitchen treatment.</div>
+        <div class="price-amount">20%<span class="per"> off</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="section-label" style="color: var(--rust);">// Process</div>
+    <h2 class="section-title">How it works.</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">01</span>
+        <h3 class="step-title">Get In Touch</h3>
+        <p class="step-desc">Text or email me with how many knives and when you need them back. I'll confirm same day.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <h3 class="step-title">Hand 'Em Over</h3>
+        <p class="step-desc">Drop off at my house, or meet me at school pickup. Wrap blades in a towel or cardboard, please.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <h3 class="step-title">I Sharpen</h3>
+        <p class="step-desc">I work each blade carefully by hand. Most orders are ready in 1–2 days.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <h3 class="step-title">Pick Up & Pay</h3>
+        <p class="step-desc">Cash, Venmo, or Zelle when you collect your knives. Ready to slice tomatoes like paper.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="dropoff">
+  <div class="wrap">
+    <div class="section-label" style="color: var(--rust);">// Drop-Off Options</div>
+    <h2 class="section-title" style="margin-bottom: 48px;">Two easy ways.</h2>
+    <div class="dropoff-grid">
+      <div class="option">
+        <span class="option-icon">Option A</span>
+        <h3>At My House</h3>
+        <p>Stop by anytime after school or on weekends. I'll give you the address when we set up the order.</p>
+        <p><strong>Best for:</strong> Bigger orders, first-time customers, folks who live nearby.</p>
+      </div>
+      <div class="option">
+        <span class="option-icon">Option B</span>
+        <h3>School Pickup</h3>
+        <p>Meeting your kid at dismissal? I can meet you in the pickup line or at the front of the school.</p>
+        <p><strong>Best for:</strong> Parents already heading to school. Just text me the day before to coordinate.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="safety">
+  <div class="wrap">
+    <div class="safety-inner">
+      <span class="safety-label">// A Note On Safety</span>
+      <h3>Please wrap your knives before handing them over.</h3>
+      <p>A thick kitchen towel, bubble wrap, or a piece of cardboard taped around each blade is perfect. Cardboard tubes work great too. Keep everyone's fingers safe — including mine.</p>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div class="section-label" style="color: var(--rust);">// Book Now</div>
+    <h2>Let's get those<br><span class="italic">edges sharp.</span></h2>
+    <p class="contact-sub">Fill out the quick form, or shoot me an email with what you've got and when you need it back.</p>
+    <div class="cta-row" style="justify-content: center; margin-bottom: 40px;">
+      <a href="https://airtable.com/appnjSYX34MIuJfcD/pagl2WCQwQoILeHPy/form" target="_blank" rel="noopener" class="btn btn-primary">Open Booking Form →</a>
+      <a href="mailto:sunkid4k@proton.me?subject=EdgeCraft%20Sharpening%20Request&body=Hi!%20I'd%20like%20to%20book%20a%20sharpening.%0A%0AItems%3A%20%0APickup%20preference%20(house%20or%20school)%3A%20%0ANeeded%20by%3A%20%0A%0AThanks!" class="btn btn-secondary">Email Me Instead</a>
+    </div>
+    <div class="contact-info">
+      <div class="line"><strong>EMAIL</strong> sunkid4k@proton.me</div>
+      <div class="line"><strong>HOURS</strong> After school &amp; weekends</div>
+      <div class="line"><strong>TURNAROUND</strong> 1–2 days</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">EdgeCraft · Run By A Neighborhood Kid · Keep Your Kitchen Safe</div>
+</footer>
+
+</body>
+</html>
