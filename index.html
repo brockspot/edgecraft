@@ -98,7 +98,7 @@
     text-transform: none;
     color: var(--paper);
   }
-  .hero-top .title-mark em { font-style: italic; font-weight: 400; color: var(--gold); }
+  .hero-top .title-mark em { font-style: italic; font-weight: 400; color: var(--rust); }
   .hero-top-meta { display: flex; gap: 28px; }
   @media (max-width: 700px) {
     .hero-top { padding: 14px 24px; flex-direction: column; gap: 6px; }
@@ -123,13 +123,13 @@
     font-size: 12px;
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--rust);
     margin-bottom: 28px;
     display: flex;
     align-items: center;
     gap: 14px;
   }
-  .hero-kicker::before { content: ''; width: 48px; height: 2px; background: var(--gold); }
+  .hero-kicker::before { content: ''; width: 48px; height: 2px; background: var(--rust); }
 
   h1.hero-title {
     font-family: 'Fraunces', serif;
@@ -143,7 +143,7 @@
   h1.hero-title em {
     font-style: italic;
     font-weight: 400;
-    color: var(--gold);
+    color: var(--rust);
     display: block;
     font-size: 0.62em;
     letter-spacing: -0.03em;
@@ -163,7 +163,7 @@
     float: left;
     line-height: 0.9;
     margin: 6px 10px 0 0;
-    color: var(--gold);
+    color: var(--rust);
   }
 
   .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -185,9 +185,9 @@
     transition: all 0.15s;
     cursor: pointer;
   }
-  .btn:hover { background: var(--gold); border-color: var(--gold); color: var(--ink); transform: translate(-2px, -2px); box-shadow: 4px 4px 0 rgba(0,0,0,0.4); }
+  .btn:hover { background: var(--rust); border-color: var(--rust); color: var(--ink); transform: translate(-2px, -2px); box-shadow: 4px 4px 0 rgba(0,0,0,0.4); }
   .btn-ghost { background: transparent; color: var(--paper); border-color: var(--paper); }
-  .btn-ghost:hover { background: var(--paper); color: var(--ink); border-color: var(--paper); box-shadow: 4px 4px 0 rgba(0,0,0,0.4); }
+  .btn-ghost:hover { background: var(--gold); color: var(--ink); border-color: var(--gold); box-shadow: 4px 4px 0 rgba(0,0,0,0.4); }
 
   /* Hero caption at bottom */
   .hero-caption {
@@ -208,7 +208,7 @@
   /* ===== TICKER ===== */
   .ticker {
     background: var(--ink);
-    color: var(--paper);
+    color: var(--gold);
     padding: 14px 0;
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
@@ -318,7 +318,7 @@
   }
   @media (max-width: 700px) { .method { padding: 48px 24px; } }
   .method .section-head { border-color: var(--paper); padding: 0 0 24px; margin-bottom: 40px; }
-  .method .section-num { color: var(--gold); }
+  .method .section-num { color: var(--rust); }
 
   .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
   @media (max-width: 800px) { .method-grid { grid-template-columns: 1fr; } }
@@ -507,15 +507,13 @@
 </head>
 <body>
 
-<div class="spine">EdgeCraft · Volume One · Neighborhood Sharpening · Est. 2026</div>
+<div class="spine">EdgeCraft · Year Two · Neighborhood Sharpening · Est. 2025</div>
 
 <!-- ===== FULLSCREEN HERO WITH IMAGE ===== -->
 <section class="hero">
   <div class="hero-top">
-    <div class="title-mark">EdgeCraft <em>— sharp since '26</em></div>
+    <div class="title-mark">EdgeCraft <em>— sharp since 2025</em></div>
     <div class="hero-top-meta">
-      <span>Vol. 01</span>
-      <span>No. 01</span>
       <span>Now Taking Orders</span>
     </div>
   </div>
@@ -524,7 +522,7 @@
     <div class="hero-inner">
       <div class="hero-kicker">A Neighborhood Trade</div>
       <h1 class="hero-title">The Dull<em>shall become sharp.</em></h1>
-      <p class="hero-deck">Dull knives slip, frustrate, and waste good tomatoes. <br> I fix that — by hand, one blade at a time. Drop yours off, or catch me at school pickup. I'll return them ready to glide.</p>
+      <p class="hero-deck">Dull knives slip, frustrate, and waste good tomatoes. <br>I fix that — by hand, one blade at a time. <br>Drop yours off, or catch me at school pickup. I'll return them ready to glide.</p>
       <div class="hero-cta">
         <a href="https://airtable.com/appnjSYX34MIuJfcD/pagl2WCQwQoILeHPy/form" target="_blank" rel="noopener" class="btn">Book A Sharpening →</a>
         <a href="#rates" class="btn btn-ghost">See The Rates</a>
@@ -587,13 +585,19 @@
       <div class="rate-num">III.</div>
       <div class="rate-name">Scissors &amp; Shears</div>
       <div class="rate-desc">Kitchen shears and regular scissors. Sharp in a snap.</div>
-      <div class="rate-price">$4<small>Per Pair</small></div>
+      <div class="rate-price">$5<small>Per Pair</small></div>
     </div>
     <div class="rate-row">
       <div class="rate-num">IV.</div>
+      <div class="rate-name">Edge Polish</div>
+      <div class="rate-desc">A special level of sharpness - the ultimate edge.</div>
+      <div class="rate-price">+$2<small>Per Knife</small></div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-num">V.</div>
       <div class="rate-name">The Full Kitchen</div>
       <div class="rate-desc">Five or more items? The whole block gets the treatment — and a discount.</div>
-      <div class="rate-price">20%<small>Off The Total</small></div>
+      <div class="rate-price">10%<small>Off The Total</small></div>
     </div>
   </div>
 </section>
@@ -603,7 +607,7 @@
   <div class="section-head">
     <div class="section-num">02</div>
     <div>
-      <div class="section-kicker" style="color: var(--gold);">The Method — Start To Finish</div>
+      <div class="section-kicker" style="color: var(--rust);">The Method — Start To Finish</div>
       <h2 class="section-title">How it <em>actually</em> works.</h2>
     </div>
   </div>
@@ -626,15 +630,15 @@
     <div class="method-step">
       <div class="method-step-num">iii</div>
       <div>
-        <h3>I Get To Work</h3>
-        <p>Each knife is worked by hand on the stone. No rushed machine grinding. Takes the time it takes — usually a day or two.</p>
+        <h3>The Crafting Begins</h3>
+        <p>Each knife is worked by hand. No rushing, it takes the time it takes — usually a day or two.</p>
       </div>
     </div>
     <div class="method-step">
       <div class="method-step-num">iv</div>
       <div>
         <h3>Pick Up &amp; Pay</h3>
-        <p>Cash, Venmo, or Zelle at pickup. You'll slice a tomato that night and remember what it's supposed to feel like.</p>
+        <p>Cash or Venmo at pickup. You'll slice a tomato that night and remember what it's supposed to feel like.</p>
       </div>
     </div>
   </div>
@@ -651,7 +655,7 @@
   <div class="pickup-option">
     <div class="pickup-tag">Option B · The School Line</div>
     <h3>Meet me at <em>dismissal.</em></h3>
-    <p>Already heading to school pickup? I can meet you in the line or at the front entrance. Just email me the day before to coordinate.</p>
+    <p>Already heading to school pickup? I can meet you in the line or at the playground. Just email me the day before to coordinate.</p>
     <div class="pickup-best">Best for → parents on a schedule · quick handoffs</div>
   </div>
 </section>
@@ -661,7 +665,7 @@
   <div class="safety-note">
     <span class="safety-stamp">// A Word On Safety</span>
     <h3>Wrap your blades, please.</h3>
-    <p>A folded kitchen towel, piece of cardboard, or bubble wrap taped around each blade is all it takes. Empty cardboard tubes work great for longer knives. This keeps your fingers, my fingers, and anyone's fingers in between perfectly attached — the way they ought to be.</p>
+    <p>A folded kitchen towel, piece of cardboard, or bubble wrap taped around each blade is all it takes. Empty cardboard tubes work great for longer knives. This keeps your fingers, my fingers, and anyone's fingers in between, perfectly attached — the way they ought to be.</p>
   </div>
 </section>
 
@@ -672,7 +676,7 @@
     <h2 class="booking-head">Ready to <em>make it sharp?</em></h2>
   </div>
   <div class="booking-side">
-    <p>The Airtable form takes about a minute — tell me what you've got and I'll get back to you the same day. Prefer email? That works too.</p>
+    <p>The Booking form takes about a minute — tell me what you've got and I'll get back to you the same day. Have other steel to sharpen or just prefer email? That works too.</p>
     <div class="booking-ctas">
       <a href="https://airtable.com/appnjSYX34MIuJfcD/pagl2WCQwQoILeHPy/form" target="_blank" rel="noopener" class="btn">Open The Booking Form →</a>
       <a href="mailto:sunkid4k@proton.me?subject=EdgeCraft%20Sharpening%20Request&body=Hi!%20I'd%20like%20to%20book%20a%20sharpening.%0A%0AItems%3A%20%0APickup%20preference%20(house%20or%20school)%3A%20%0ANeeded%20by%3A%20%0A%0AThanks!" class="btn btn-ghost">Email Me Instead →</a>
@@ -681,7 +685,7 @@
       <div><strong>Email</strong><span>sunkid4k@proton.me</span></div>
       <div><strong>Hours</strong><span>After school &amp; weekends</span></div>
       <div><strong>Turnaround</strong><span>1–2 days, usually</span></div>
-      <div><strong>Payment</strong><span>Cash · Venmo · Zelle</span></div>
+      <div><strong>Payment</strong><span>Cash · Venmo</span></div>
     </div>
   </div>
 </section>
